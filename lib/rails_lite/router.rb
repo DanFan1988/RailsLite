@@ -11,6 +11,8 @@ class Route
   end
 
   def run(req, res)
+    @controller = Controller.new(req, res)
+    @controller.invoke_action
   end
 end
 
@@ -38,9 +40,11 @@ class Router
   end
 
   def match(req)
+    req.request_method
   end
 
   def run(req, res)
+    match(req)
   end
 end
 
