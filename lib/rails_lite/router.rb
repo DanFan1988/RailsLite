@@ -7,12 +7,18 @@ class Route
   end
 
   def matches?(req)
-    req.request_method.downcase.to_sym == http_method
+    (req.request_method.downcase.to_sym == http_method) && (pattern =~ req.path)
   end
 
   def run(req, res)
-    @controller = Controller.new(req, res)
-    @controller.invoke_action
+    match_data = @pattern.match(req.path)
+
+    route_params = {}
+    match_data.names.each do |name|
+      route_params[name] = match_data[name]
+    end
+
+    @controller_class.new(req, res, route_params).invoke_action(action_name)
   end
 end
 
@@ -20,7 +26,7 @@ class Router
   attr_reader :routes
 
   def initialize
-    @routes
+    @routes = []
   end
 
   def add_route(pattern, method, controller_class, action_name)
@@ -31,6 +37,7 @@ class Router
   end
 
   def draw(&proc)
+    instance_eval(&proc)
   end
 
   [:get, :post, :put, :delete].each do |http_method|
@@ -40,13 +47,16 @@ class Router
   end
 
   def match(req)
-    req.request_method
+    routes.find { |route| route.matches?(req) }
   end
 
   def run(req, res)
-    match(req)
+    matching_route = match(req)
+
+    if matching_route.nil?
+      res.status = 404
+    else
+      matching_route.run(req, res)
+    end
   end
 end
-
-
-#

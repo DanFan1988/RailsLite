@@ -5,21 +5,21 @@ class Params
     @params = {}
 
     if req.body
-      parse_www_encoded_form(req.body)
+      @params.merge!(parse_www_encoded_form(req.body))
     end
 
     if req.query_string
-      parse_www_encoded_form(req.query_string)
+      @params.merge!(parse_www_encoded_form(req.query_string))
     end
-
-    p @params
 
   end
 
   def [](key)
+    @params[key]
   end
 
   def to_s
+    @params.to_json.to_s
   end
 
   private
@@ -51,11 +51,5 @@ class Params
 
   def parse_key(key)
     keys = key.split(/\]\[|\[|\]/)
-
-    # keys.count-1.times do |i|
-    #   p keys[i]
-    #   p keys[i+1]
-    #   @params[keys[i]] = [keys][i+1]
-    # end
   end
 end
